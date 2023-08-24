@@ -57,6 +57,19 @@ app.use(Todos);
 
 app.use(Auth);
 
+app.use((error, req, res, next) => {
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json({
+    "meta":{
+    status: "false",
+    message: message,
+    data: data,
+    statusCode: status,
+}});
+});
+
 mongoose
   .connect("mongodb+srv://Yash_Shah:y_a_s_h@cluster0.h0nmwav.mongodb.net/TODO")
   .then(() => {

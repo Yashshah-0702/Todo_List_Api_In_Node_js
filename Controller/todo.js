@@ -9,6 +9,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 
 const { validationResult } = require("express-validator");
+const { post } = require("../Routes/todo");
 
 let transporter = nodemailer.createTransport({
   service: "gmail",
@@ -38,25 +39,32 @@ exports.getPosts = (req, res, next) => {
     })
     .then((result) => {
       return res.status(200).json({
-        message: "All Posts Found",
-        posts: result,
+        meta: {
+          message: "All Posts Found",
+          posts: result,
+          statusCode: 200,
+        },
       });
     })
     .catch((err) => {
-      console.log(err);
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };
 
 exports.createPosts = (req, res, next) => {
+  let post;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Creating post failed...");
-    error.status = 422;
+    error.statusCode = 422;
     throw error;
   }
   if (!req.file) {
     const error = new Error("No image found...!");
-    error.statusCode = 422;
+    error.statusCode = 404;
     throw error;
   }
   const title = req.body.title;
@@ -73,6 +81,7 @@ exports.createPosts = (req, res, next) => {
   todo
     .save()
     .then((result) => {
+      post = result
       res.status(201).json({
         status: "true",
         message: "Post Created Succesfully",
@@ -87,26 +96,43 @@ exports.createPosts = (req, res, next) => {
         from: "yash72200002@gmail.com",
         to: user.email,
         subject: "New Task Added",
-        html: "New task is added",
+        html: `<h1>New task is added</h1>
+        <h3>Summary of Added Task:-</h3>
+        <p>Title:-${post.title}</p>
+        <p>Content:-${post.content}</p>
+        <p>ImagePath:-${post.imageurl}</p>
+        <p>Description:-${post.description}</p>`,
       });
     })
     .catch((err) => {
-      console.log(err);
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };
 
 exports.getSinglePost = (req, res, next) => {
   const postsId = req.params.postsId;
   Todo.findById(postsId)
-    .popul.then((post) => {
+    .then((post) => {
+      if (!post) {
+        const error = new Error("Post not found");
+        error.status = 404;
+        throw error;
+      }
       return res.status(200).json({
         status: "true",
         message: "Post Founded Successfully",
         post: post,
+        statusCode: 200,
       });
     })
     .catch((err) => {
-      console.log(err);
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };
 
@@ -114,7 +140,7 @@ exports.updatePosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Updating post failed...");
-    error.status = 422;
+    error.statusCode = 422;
     throw error;
   }
   const postsId = req.params.postsId;
@@ -129,12 +155,12 @@ exports.updatePosts = (req, res, next) => {
     .then((post) => {
       if (!post) {
         const error = new Error("Post Not Found...");
-        error.status = 404;
+        error.statusCode = 404;
         throw error;
       }
       if (post.userId.toString() !== req.userId) {
         const error = new Error("Not Authorised...");
-        error.status = 403;
+        error.statusCode = 403;
         throw error;
       }
 
@@ -152,7 +178,10 @@ exports.updatePosts = (req, res, next) => {
         .json({ message: "Post updated successfully", post: result });
     })
     .catch((err) => {
-      console.log(err);
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };
 
@@ -186,7 +215,10 @@ exports.deletePosts = (req, res, next) => {
         .json({ status: "true", message: "Post Deleted Successfully" });
     })
     .catch((err) => {
-      console.log(err);
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };
 
