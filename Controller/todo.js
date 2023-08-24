@@ -120,7 +120,7 @@ exports.updatePosts = (req, res, next) => {
   const postsId = req.params.postsId;
   const title = req.body.title;
   const content = req.body.content;
-  const imageurl = req.body.image;
+  let imageurl = req.body.image;
   const description = req.body.description;
   if (req.file) {
     imageurl = req.file.path;
@@ -137,6 +137,9 @@ exports.updatePosts = (req, res, next) => {
         error.status = 403;
         throw error;
       }
+
+      clearImage(post.imageurl);
+
       post.title = title;
       post.content = content;
       post.imageurl = imageurl;
@@ -155,10 +158,10 @@ exports.updatePosts = (req, res, next) => {
 
 exports.deletePosts = (req, res, next) => {
   const errors = validationResult(req);
-  if(!errors.isEmpty()){
-    const error = new Error("Deleting post failed..")
-    error.status = 404
-    throw error
+  if (!errors.isEmpty()) {
+    const error = new Error("Deleting post failed..");
+    error.status = 404;
+    throw error;
   }
   const postsId = req.params.postsId;
   Todo.findById(postsId)
@@ -172,7 +175,7 @@ exports.deletePosts = (req, res, next) => {
         const error = new Error("Not Authorised...");
         error.status = 403;
         throw error;
-      }  
+      }
 
       clearImage(post.imageurl);
       return Todo.findByIdAndRemove(postsId);
@@ -184,9 +187,6 @@ exports.deletePosts = (req, res, next) => {
     })
     .catch((err) => {
       console.log(err);
-      return res
-        .status(500)
-        .json({ status: "false", message: "Internal server error" });
     });
 };
 
