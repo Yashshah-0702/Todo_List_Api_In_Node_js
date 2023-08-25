@@ -18,6 +18,13 @@ exports.SignupValidation = [
 ];
 
 exports.CreatePostValidation = [
-  body("title").trim().isLength({ min: 5, max: 12 }),
+  body("title").trim().isLength({ min: 5, max: 20 }),
   body("content").not().isEmpty(),
+  body("description").not().isEmpty()
 ];
+
+exports.UpdatePostValidation = [
+  body("title").trim().isLength({ min: 5, max: 20 }),
+  body("content").not().isEmpty(),
+  body("description").not().isEmpty()
+]

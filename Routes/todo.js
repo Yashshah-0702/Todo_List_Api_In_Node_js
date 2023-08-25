@@ -14,7 +14,7 @@ router.post('/posts',isAuth,isValidation.CreatePostValidation,todoController.cre
 
 router.get('/posts/:postsId',isAuth,todoController.getSinglePost)
 
-router.put('/posts/:postsId',isAuth,todoController.updatePosts)
+router.put('/posts/:postsId',isAuth,isValidation.UpdatePostValidation,todoController.updatePosts)
 
 router.delete('/posts/:postsId',isAuth,todoController.deletePosts)
 

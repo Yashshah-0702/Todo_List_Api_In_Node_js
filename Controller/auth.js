@@ -19,9 +19,8 @@ let transporter = nodemailer.createTransport({
 exports.SignUp = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("signup failed...");
-    error.status = 422;
-    error.data = errors.array();
+    const error = new Error("signup failed please enter valid email address or password...");
+    error.statusCode = 422;
     throw error;
   }
   const email = req.body.email;
