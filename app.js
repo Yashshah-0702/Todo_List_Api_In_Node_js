@@ -14,6 +14,8 @@ const path = require("path");
 
 const multer = require("multer");
 
+const ErrorHandling = require('./Error_handling/error')
+
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads");
@@ -41,7 +43,7 @@ app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("imageurl")
 );
 
-app.use(express.static(path.join(__dirname, "images")));
+app.use(express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -57,18 +59,7 @@ app.use(Todos);
 
 app.use(Auth);
 
-app.use((error, req, res, next) => {
-  const status = error.statusCode || 500;
-  const message = error.message;
-  const data = error.data;
-  res.status(status).json({
-    "meta":{
-    status: "false",
-    message: message,
-    data: data,
-    statusCode: status,
-}});
-});
+app.use(ErrorHandling.errorHandling);
 
 mongoose
   .connect("mongodb+srv://Yash_Shah:y_a_s_h@cluster0.h0nmwav.mongodb.net/TODO")

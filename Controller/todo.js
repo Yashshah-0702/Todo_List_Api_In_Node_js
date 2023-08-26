@@ -9,7 +9,6 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 
 const { validationResult } = require("express-validator");
-const { post } = require("../Routes/todo");
 
 let transporter = nodemailer.createTransport({
   service: "gmail",
@@ -81,8 +80,8 @@ exports.createPosts = (req, res, next) => {
   todo
     .save()
     .then((result) => {
-      post = result
-      res.status(201).json({
+      post = result;
+      return res.status(201).json({
         status: "true",
         message: "Post Created Succesfully",
         post: result,
@@ -92,9 +91,14 @@ exports.createPosts = (req, res, next) => {
       return User.findById(req.userId);
     })
     .then((user) => {
+      user.todoTasks.push(todo);
+      return user.save();
+    })
+
+    .then((email) => {
       transporter.sendMail({
         from: "yash72200002@gmail.com",
-        to: user.email,
+        to: email.email,
         subject: "New Task Added",
         html: `<h1>New task is added</h1>
         <h3>Summary of Added Task:-</h3>
@@ -151,6 +155,11 @@ exports.updatePosts = (req, res, next) => {
   if (req.file) {
     imageurl = req.file.path;
   }
+  if (!imageurl) {
+    const error = new Error("No file picked...");
+    error.statusCode = 422;
+    throw error;
+  }
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
@@ -163,9 +172,9 @@ exports.updatePosts = (req, res, next) => {
         error.statusCode = 403;
         throw error;
       }
-
-      clearImage(post.imageurl);
-
+      if (imageurl !== post.imageurl) {
+        clearImage(post.imageurl);
+      }
       post.title = title;
       post.content = content;
       post.imageurl = imageurl;
@@ -208,6 +217,13 @@ exports.deletePosts = (req, res, next) => {
 
       clearImage(post.imageurl);
       return Todo.findByIdAndRemove(postsId);
+    })
+    .then(() => {
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      user.todo.pull(postsId);
+      return user.save();
     })
     .then(() => {
       return res
