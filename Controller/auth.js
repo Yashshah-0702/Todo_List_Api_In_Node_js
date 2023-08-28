@@ -4,29 +4,16 @@ const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
 
-const nodemailer = require("nodemailer");
+const emailTemplate = require("../nodemailer/email");
 
 const { validationResult } = require("express-validator");
 
-const error = require("../Error_handling/error");
-
-let transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "yash72200002@gmail.com",
-    pass: "xszbemuusaprolkp",
-  },
-});
+const errorHandling = require("../Error_handling/error");
 
 exports.SignUp = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    // const error = new Error(
-    //   "signup failed please enter valid email address or password..."
-    // );
-    // error.statusCode = 422;
-    // throw error;
-    error.error(
+    errorHandling.error(
       "signup failed please enter valid email address or password...",
       422
     );
@@ -48,12 +35,7 @@ exports.SignUp = (req, res, next) => {
         .json({ message: "Profile added successfully", userId: result._id });
     })
     .then(() => {
-      return transporter.sendMail({
-        to: email,
-        from: "yash72200002@gmail.com",
-        subject: "SignUp Succedded!",
-        html: "<h1>You have successfully signed up.</h1>",
-      });
+      return emailTemplate.signUpMail(email);
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -70,10 +52,7 @@ exports.Login = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        // const error = new Error("User with this email id does not exists..");
-        // error.statusCode = 401;
-        // throw error;
-        error.error("User with this email id does not exists..", 401);
+        errorHandling.error("User with this email id does not exists..", 401);
       }
       loadeduser = user;
       return bcrypt.compare(password, user.password);
@@ -108,23 +87,21 @@ exports.updateUser = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        error.error("Profile not found", 404);
+        errorHandling.error("Profile not found", 404);
       }
       if (user._id.toString() !== req.userId) {
-        error.error("Not authorised", 403);
+        errorHandling.error("Not authorised", 403);
       }
       user.email = email;
       user.password = password;
       return user.save();
     })
     .then((profile) => {
-      return res
-        .status(201)
-        .json({
-          status: "true",
-          message: "Profile updated succesfully",
-          userId: profile._id,
-        });
+      return res.status(201).json({
+        status: "true",
+        message: "Profile updated succesfully",
+        userId: profile._id,
+      });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -141,7 +118,7 @@ exports.deleteUser = (req, res, next) => {
     })
     .then((user) => {
       if (!user) {
-        error.error("Pser not found", 404);
+        error.error("User not found", 404);
       }
       if (user.id.toString() !== req.userId) {
         error.error("Not authorised", 403);

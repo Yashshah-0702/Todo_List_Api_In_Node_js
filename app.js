@@ -1,59 +1,34 @@
 const express = require("express");
 
-const app = express();
+const path = require("path");
 
 const bodyParser = require("body-parser");
 
-const mongoose = require("mongoose");
+const multer = require("multer");
+
+const { fileStorage, fileFilter } = require("./utils/multer");
+
+const connectToDatabase = require("./utils/mongoose");
 
 const Todos = require("./Routes/todo");
 
 const Auth = require("./Routes/auth");
 
-const path = require("path");
+const ErrorHandling = require("./Error_handling/error");
 
-const multer = require("multer");
+const corsOptions = require("./utils/cors");
 
-const ErrorHandling = require('./Error_handling/error')
-
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads");
-  },
-  filename: (req, file, cb) => {
-    cb(null, new Date().toISOString() + "-" + file.originalname);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/jpg" ||
-    file.mimetype === "image/jpeg"
-  ) {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
+const app = express();
 
 app.use(bodyParser.json());
 
 app.use(
-  multer({ storage: fileStorage, fileFilter: fileFilter }).single("imageurl")
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("uploads")
 );
 
 app.use(express.static(path.join(__dirname, "uploads")));
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  next();
-});
+app.use(corsOptions.Cors);
 
 app.use(Todos);
 
@@ -61,8 +36,7 @@ app.use(Auth);
 
 app.use(ErrorHandling.errorHandling);
 
-mongoose
-  .connect("mongodb+srv://Yash_Shah:y_a_s_h@cluster0.h0nmwav.mongodb.net/TODO")
+connectToDatabase
   .then(() => {
     console.log("Connected to database");
     app.listen(7000);

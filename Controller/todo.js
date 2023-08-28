@@ -6,17 +6,20 @@ const User = require("../Model/user");
 
 const nodemailer = require("nodemailer");
 
+const emailTemplate = require('../nodemailer/email')
+
 const fs = require("fs");
 
 const { validationResult } = require("express-validator");
+const { errorHandling } = require("../Error_handling/error");
 
-let transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "yash72200002@gmail.com",
-    pass: "xszbemuusaprolkp",
-  },
-});
+// let transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: "yash72200002@gmail.com",
+//     pass: "xszbemuusaprolkp",
+//   },
+// });
 
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1;
@@ -57,23 +60,19 @@ exports.createPosts = (req, res, next) => {
   let post;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Creating post failed...");
-    error.statusCode = 422;
-    throw error;
+    errorHandling.error("Creating post failed...",422)
   }
   if (!req.file) {
-    const error = new Error("No image found...!");
-    error.statusCode = 404;
-    throw error;
+    errorHandling.error("No image found...",404)
   }
   const title = req.body.title;
   const content = req.body.content;
-  const imageurl = req.file.path;
+  const uploads = req.file.path;
   const description = req.body.description;
   const todo = new Todo({
     title: title,
     content: content,
-    imageurl: imageurl,
+    uploads: uploads,
     description: description,
     userId: req.userId,
   });
@@ -95,18 +94,19 @@ exports.createPosts = (req, res, next) => {
       return user.save();
     })
 
-    .then((email) => {
-      transporter.sendMail({
-        from: "yash72200002@gmail.com",
-        to: email.email,
-        subject: "New Task Added",
-        html: `<h1>New task is added</h1>
-        <h3>Summary of Added Task:-</h3>
-        <p>Title:-${post.title}</p>
-        <p>Content:-${post.content}</p>
-        <p>ImagePath:-${post.imageurl}</p>
-        <p>Description:-${post.description}</p>`,
-      });
+    .then((user) => {
+      return emailTemplate.sendNewTaskEmail(user.email,post)
+      // transporter.sendMail({
+      //   from: "yash72200002@gmail.com",
+      //   to: user.email,
+      //   subject: "New Task Added",
+      //   html: `<h1>New task is added</h1>
+      //   <h3>Summary of Added Task:-</h3>
+      //   <p>Title:-${post.title}</p>
+      //   <p>Content:-${post.content}</p>
+      //   <p>ImagePath:-${post.uploads}</p>
+      //   <p>Description:-${post.description}</p>`,
+      // });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -150,12 +150,12 @@ exports.updatePosts = (req, res, next) => {
   const postsId = req.params.postsId;
   const title = req.body.title;
   const content = req.body.content;
-  let imageurl = req.body.image;
+  let uploads = req.body.uploads;
   const description = req.body.description;
   if (req.file) {
-    imageurl = req.file.path;
+    uploads = req.file.path;
   }
-  if (!imageurl) {
+  if (!uploads) {
     const error = new Error("No file picked...");
     error.statusCode = 422;
     throw error;
@@ -172,12 +172,12 @@ exports.updatePosts = (req, res, next) => {
         error.statusCode = 403;
         throw error;
       }
-      if (imageurl !== post.imageurl) {
-        clearImage(post.imageurl);
+      if (uploads !== post.uploads) {
+        clearImage(post.uploads);
       }
       post.title = title;
       post.content = content;
-      post.imageurl = imageurl;
+      post.uploads = uploads;
       post.description = description;
       return post.save();
     })
@@ -187,6 +187,7 @@ exports.updatePosts = (req, res, next) => {
         .json({ message: "Post updated successfully", post: result });
     })
     .catch((err) => {
+      console.log(err)
       if (!err.statusCode) {
         err.statusCode = 500;
       }
@@ -215,7 +216,7 @@ exports.deletePosts = (req, res, next) => {
         throw error;
       }
 
-      clearImage(post.imageurl);
+      clearImage(post.uploads);
       return Todo.findByIdAndRemove(postsId);
     })
     .then(() => {

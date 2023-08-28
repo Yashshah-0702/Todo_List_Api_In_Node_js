@@ -12,7 +12,7 @@ const todoSchema = new Schema(
       type: String,
       required: true,
     },
-    imageurl: {
+    uploads: {
       type: String,
       required: true,
     },
