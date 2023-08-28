@@ -38,10 +38,7 @@ exports.SignUp = (req, res, next) => {
       return emailTemplate.signUpMail(email);
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err);
     });
 };
 
@@ -59,7 +56,7 @@ exports.Login = (req, res, next) => {
     })
     .then((IsEqual) => {
       if (!IsEqual) {
-        error.error("Incorrect Password", 401);
+        errorHandling.error("Incorrect Password", 401);
       }
       const token = jwt.sign(
         { email: loadeduser.email, userId: loadeduser._id.toString() },
@@ -73,10 +70,25 @@ exports.Login = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
+      errorHandling.error500(err);
+    });
+};
+
+exports.getSingleUser = (req, res, next) => {
+  const userId = req.params.userId;
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        errorHandling.error("Profile not found...", 404);
       }
-      next(err);
+      return res.status(200).json({
+        status: "true",
+        message: "Profile found successfully",
+        user: user,
+      });
+    })
+    .catch((err) => {
+      errorHandling.error500(err);
     });
 };
 
@@ -104,9 +116,7 @@ exports.updateUser = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
+      errorHandling.error500(err);
     });
 };
 
@@ -118,10 +128,10 @@ exports.deleteUser = (req, res, next) => {
     })
     .then((user) => {
       if (!user) {
-        error.error("User not found", 404);
+        errorHandling.error("User not found", 404);
       }
       if (user.id.toString() !== req.userId) {
-        error.error("Not authorised", 403);
+        errorHandling.error("Not authorised", 403);
       }
     })
     .then(() => {
@@ -130,9 +140,6 @@ exports.deleteUser = (req, res, next) => {
         .json({ status: "true", message: "Profile deleted successfully" });
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err);
     });
 };

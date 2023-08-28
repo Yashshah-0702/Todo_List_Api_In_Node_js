@@ -1,25 +1,14 @@
-const path = require("path");
-
 const Todo = require("../Model/todo");
 
 const User = require("../Model/user");
 
-const nodemailer = require("nodemailer");
+const clearUploads = require("../middleware/clearUploads");
 
-const emailTemplate = require('../nodemailer/email')
-
-const fs = require("fs");
+const emailTemplate = require("../nodemailer/email");
 
 const { validationResult } = require("express-validator");
-const { errorHandling } = require("../Error_handling/error");
 
-// let transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: "yash72200002@gmail.com",
-//     pass: "xszbemuusaprolkp",
-//   },
-// });
+const errorHandling = require("../Error_handling/error");
 
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1;
@@ -49,10 +38,7 @@ exports.getPosts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err);
     });
 };
 
@@ -60,10 +46,10 @@ exports.createPosts = (req, res, next) => {
   let post;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    errorHandling.error("Creating post failed...",422)
+    errorHandling.error("Creating post failed...", 422);
   }
   if (!req.file) {
-    errorHandling.error("No image found...",404)
+    errorHandling.error("No image found...", 404);
   }
   const title = req.body.title;
   const content = req.body.content;
@@ -95,24 +81,10 @@ exports.createPosts = (req, res, next) => {
     })
 
     .then((user) => {
-      return emailTemplate.sendNewTaskEmail(user.email,post)
-      // transporter.sendMail({
-      //   from: "yash72200002@gmail.com",
-      //   to: user.email,
-      //   subject: "New Task Added",
-      //   html: `<h1>New task is added</h1>
-      //   <h3>Summary of Added Task:-</h3>
-      //   <p>Title:-${post.title}</p>
-      //   <p>Content:-${post.content}</p>
-      //   <p>ImagePath:-${post.uploads}</p>
-      //   <p>Description:-${post.description}</p>`,
-      // });
+      return emailTemplate.sendNewTaskEmail(user.email, post);
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err);
     });
 };
 
@@ -121,9 +93,7 @@ exports.getSinglePost = (req, res, next) => {
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        const error = new Error("Post not found");
-        error.status = 404;
-        throw error;
+        errorHandling.error("Post not found", 404);
       }
       return res.status(200).json({
         status: "true",
@@ -133,19 +103,14 @@ exports.getSinglePost = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err);
     });
 };
 
 exports.updatePosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Updating post failed...");
-    error.statusCode = 422;
-    throw error;
+    errorHandling.error("Updating post failed...", 422);
   }
   const postsId = req.params.postsId;
   const title = req.body.title;
@@ -156,24 +121,18 @@ exports.updatePosts = (req, res, next) => {
     uploads = req.file.path;
   }
   if (!uploads) {
-    const error = new Error("No file picked...");
-    error.statusCode = 422;
-    throw error;
+    errorHandling.error("No file picked...", 422);
   }
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        const error = new Error("Post Not Found...");
-        error.statusCode = 404;
-        throw error;
+        errorHandling.error("Post not found...", 404);
       }
       if (post.userId.toString() !== req.userId) {
-        const error = new Error("Not Authorised...");
-        error.statusCode = 403;
-        throw error;
+        errorHandling.error("Not Authorised", 403);
       }
       if (uploads !== post.uploads) {
-        clearImage(post.uploads);
+        clearUploads(post.uploads);
       }
       post.title = title;
       post.content = content;
@@ -187,43 +146,32 @@ exports.updatePosts = (req, res, next) => {
         .json({ message: "Post updated successfully", post: result });
     })
     .catch((err) => {
-      console.log(err)
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err);
     });
 };
 
 exports.deletePosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Deleting post failed..");
-    error.status = 404;
-    throw error;
+    errorHandling.error("Deleting post failed...", 404);
   }
   const postsId = req.params.postsId;
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        const error = new Error("Post not found...");
-        error.status = 404;
-        throw error;
+        errorHandling.error("post not found...", 404);
       }
       if (post.userId.toString() !== req.userId) {
-        const error = new Error("Not Authorised...");
-        error.status = 403;
-        throw error;
+        errorHandling.error("Not authorised", 404);
       }
-
-      clearImage(post.uploads);
+      clearUploads(post.uploads);
       return Todo.findByIdAndRemove(postsId);
     })
     .then(() => {
       return User.findById(req.userId);
     })
     .then((user) => {
-      user.todo.pull(postsId);
+      user.todoTasks.pull(postsId);
       return user.save();
     })
     .then(() => {
@@ -232,14 +180,6 @@ exports.deletePosts = (req, res, next) => {
         .json({ status: "true", message: "Post Deleted Successfully" });
     })
     .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+      errorHandling.error500(err)
     });
-};
-
-const clearImage = (filePath) => {
-  filePath = path.join(__dirname, "..", filePath);
-  fs.unlink(filePath, (err) => console.log(err));
 };

@@ -17,14 +17,29 @@ exports.SignupValidation = [
   body("password").trim().isLength({ min: 5 }),
 ];
 
+exports.UpdateUserValidation = [
+  body("email")
+    .isEmail()
+    .withMessage("plz enter a valid email...")
+    .custom((value, { req }) => {
+      return User.findOne({ email: value }).then((userDoc) => {
+        if (userDoc) {
+          return Promise.reject("Email already exists..");
+        }
+      });
+    })
+    .normalizeEmail(),
+  body("password").trim().isLength({ min: 5 }),
+];
+
 exports.CreatePostValidation = [
   body("title").trim().isLength({ min: 5, max: 70 }),
   body("content").not().isEmpty(),
-  body("description").not().isEmpty()
+  body("description").not().isEmpty(),
 ];
 
 exports.UpdatePostValidation = [
   body("title").trim().isLength({ min: 5, max: 70 }),
   body("content").not().isEmpty(),
-  body("description").not().isEmpty()
-]
+  body("description").not().isEmpty(),
+];
