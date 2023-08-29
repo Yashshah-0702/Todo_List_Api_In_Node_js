@@ -1,3 +1,5 @@
+const statusCodes = require('./statusCodes')
+
 exports.errorHandling = (error, req, res, next) => {
   const status = error.statusCode || 500;
   const message = error.message;
@@ -18,9 +20,9 @@ exports.error = (message,status)=>{
    throw error
 }
 
-exports.error500=(err)=>{
+exports.error500=(err,next)=>{
    if(!err.statusCode){
-    err.statusCode=500
+    err.statusCode=statusCodes.INTERNAL_SERVER_ERROR
    }
    next(err)
 }

@@ -10,6 +10,16 @@ const { validationResult } = require("express-validator");
 
 const errorHandling = require("../Error_handling/error");
 
+const statusCodes = require("../Error_handling/statusCodes");
+
+const errorMessages = require("../Error_handling/errorMessages");
+
+const sharp = require("sharp");
+
+const path = require("path");
+
+const fs = require("fs");
+
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
@@ -46,11 +56,15 @@ exports.createPosts = (req, res, next) => {
   let post;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    errorHandling.error("Creating post failed...", 422);
+    errorHandling.error(
+      "Creating post failed...",
+      statusCodes.UNPROCESSABLE_ENTITY
+    );
   }
   if (!req.file) {
-    errorHandling.error("No image found...", 404);
+    errorHandling.error("No image found...", statusCodes.UNPROCESSABLE_ENTITY);
   }
+  const compressionQuality = 80;
   const title = req.body.title;
   const content = req.body.content;
   const uploads = req.file.path;
@@ -62,12 +76,25 @@ exports.createPosts = (req, res, next) => {
     description: description,
     userId: req.userId,
   });
+  const resizedTempPath = path.join("uploads", "temp", req.file.filename);
+
+  sharp(uploads)
+    .jpeg({ quality: compressionQuality }) 
+    .toFile(resizedTempPath, (err, info) => {
+      if (err) {
+        // console.error("Error resizing image:", err);
+      } else {
+        // console.log("Resized image:", info);
+        fs.unlinkSync(uploads);
+        fs.renameSync(resizedTempPath, uploads);
+      }
+    });
   todo
     .save()
     .then((result) => {
+      // sharp(result.uploads).jpeg({ quality: compressionQuality }).toFile(result.uploads)
       post = result;
-      return res.status(201).json({
-        status: "true",
+      return res.status(statusCodes.CREATED).json({
         message: "Post Created Succesfully",
         post: result,
       });
@@ -76,7 +103,7 @@ exports.createPosts = (req, res, next) => {
       return User.findById(req.userId);
     })
     .then((user) => {
-      user.todoTasks.push(todo);
+      user.todoTasks.push(todo._id);
       return user.save();
     })
 
@@ -93,24 +120,26 @@ exports.getSinglePost = (req, res, next) => {
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        errorHandling.error("Post not found", 404);
+        errorHandling.error("Post not found", statusCodes.NOT_FOUND);
       }
-      return res.status(200).json({
-        status: "true",
+      return res.status(statusCodes.SUCCESS).json({
         message: "Post Founded Successfully",
         post: post,
-        statusCode: 200,
       });
     })
     .catch((err) => {
       errorHandling.error500(err);
     });
 };
+1;
 
 exports.updatePosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    errorHandling.error("Updating post failed...", 422);
+    errorHandling.error(
+      "Updating post failed...",
+      statusCodes.UNPROCESSABLE_ENTITY
+    );
   }
   const postsId = req.params.postsId;
   const title = req.body.title;
@@ -121,15 +150,15 @@ exports.updatePosts = (req, res, next) => {
     uploads = req.file.path;
   }
   if (!uploads) {
-    errorHandling.error("No file picked...", 422);
+    errorHandling.error("No file picked...", statusCodes.UNPROCESSABLE_ENTITY);
   }
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        errorHandling.error("Post not found...", 404);
+        errorHandling.error("Post not found...", statusCodes.NOT_FOUND);
       }
       if (post.userId.toString() !== req.userId) {
-        errorHandling.error("Not Authorised", 403);
+        errorHandling.error("Not Authorised", statusCodes.FORBIDDEN);
       }
       if (uploads !== post.uploads) {
         clearUploads(post.uploads);
@@ -142,7 +171,7 @@ exports.updatePosts = (req, res, next) => {
     })
     .then((result) => {
       return res
-        .status(201)
+        .status(statusCodes.SUCCESS)
         .json({ message: "Post updated successfully", post: result });
     })
     .catch((err) => {
@@ -151,18 +180,17 @@ exports.updatePosts = (req, res, next) => {
 };
 
 exports.deletePosts = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    errorHandling.error("Deleting post failed...", 404);
-  }
   const postsId = req.params.postsId;
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        errorHandling.error("post not found...", 404);
+        errorHandling.error(
+          "post not found...",
+          statusCodes.UNPROCESSABLE_ENTITY
+        );
       }
       if (post.userId.toString() !== req.userId) {
-        errorHandling.error("Not authorised", 404);
+        errorHandling.error("Not authorised", statusCodes.FORBIDDEN);
       }
       clearUploads(post.uploads);
       return Todo.findByIdAndRemove(postsId);
@@ -176,10 +204,10 @@ exports.deletePosts = (req, res, next) => {
     })
     .then(() => {
       return res
-        .status(200)
-        .json({ status: "true", message: "Post Deleted Successfully" });
+        .status(statusCodes.SUCCESS)
+        .json({ message: "Post Deleted Successfully" });
     })
     .catch((err) => {
-      errorHandling.error500(err)
+      errorHandling.error500(err);
     });
 };

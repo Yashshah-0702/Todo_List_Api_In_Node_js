@@ -23,10 +23,16 @@ const app = express();
 app.use(bodyParser.json());
 
 app.use(
-  multer({ storage: fileStorage, fileFilter: fileFilter }).single("uploads")
+  multer({
+    storage: fileStorage,
+    fileFilter: fileFilter,
+    limits: {
+      fileSize: 1024 * 1024 * 5,
+    },
+  }).single("uploads")
 );
 
-app.use(express.static(path.join(__dirname, "uploads")));
+// app.use(express.static(path.join(__dirname, "upload")));111
 
 app.use(corsOptions.Cors);
 
