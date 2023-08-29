@@ -2,7 +2,7 @@ const Todo = require("../Model/todo");
 
 const User = require("../Model/user");
 
-const clearUploads = require("../middleware/clearUploads");
+const clearUploads = require("../utils/clearUploads");
 
 const emailTemplate = require("../nodemailer/email");
 
@@ -48,7 +48,10 @@ exports.getPosts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 
@@ -79,12 +82,11 @@ exports.createPosts = (req, res, next) => {
   const resizedTempPath = path.join("uploads", "temp", req.file.filename);
 
   sharp(uploads)
-    .jpeg({ quality: compressionQuality }) 
+    .jpeg({ quality: compressionQuality })
     .toFile(resizedTempPath, (err, info) => {
       if (err) {
-        // console.error("Error resizing image:", err);
+         errorHandling.error("image not suitable",statusCodes.UNPROCESSABLE_ENTITY)
       } else {
-        // console.log("Resized image:", info);
         fs.unlinkSync(uploads);
         fs.renameSync(resizedTempPath, uploads);
       }
@@ -92,7 +94,6 @@ exports.createPosts = (req, res, next) => {
   todo
     .save()
     .then((result) => {
-      // sharp(result.uploads).jpeg({ quality: compressionQuality }).toFile(result.uploads)
       post = result;
       return res.status(statusCodes.CREATED).json({
         message: "Post Created Succesfully",
@@ -111,7 +112,10 @@ exports.createPosts = (req, res, next) => {
       return emailTemplate.sendNewTaskEmail(user.email, post);
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 
@@ -128,7 +132,10 @@ exports.getSinglePost = (req, res, next) => {
       });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 1;
@@ -175,7 +182,10 @@ exports.updatePosts = (req, res, next) => {
         .json({ message: "Post updated successfully", post: result });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 
@@ -208,6 +218,9 @@ exports.deletePosts = (req, res, next) => {
         .json({ message: "Post Deleted Successfully" });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };

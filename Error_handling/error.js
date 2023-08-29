@@ -20,10 +20,4 @@ exports.error = (message,status)=>{
    throw error
 }
 
-exports.error500=(err,next)=>{
-   if(!err.statusCode){
-    err.statusCode=statusCodes.INTERNAL_SERVER_ERROR
-   }
-   next(err)
-}
 
