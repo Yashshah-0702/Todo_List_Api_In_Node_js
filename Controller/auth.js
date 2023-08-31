@@ -10,12 +10,14 @@ const { validationResult } = require("express-validator");
 
 const errorHandling = require("../Error_handling/error");
 
+const messages = require("../Error_handling/Messages");
+
 exports.SignUp = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     errorHandling.error(
-      "signup failed please enter valid email address or password...",
-      422
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode
     );
   }
   const email = req.body.email;
@@ -31,14 +33,17 @@ exports.SignUp = (req, res, next) => {
     })
     .then((result) => {
       return res
-        .status(200)
-        .json({ message: "Profile added successfully", userId: result._id });
+        .status(messages.CREATED.statuscode)
+        .json({ message: messages.CREATED.message, userId: result._id });
     })
     .then(() => {
       return emailTemplate.signUpMail(email);
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 
@@ -49,28 +54,37 @@ exports.Login = (req, res, next) => {
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
-        errorHandling.error("User with this email id does not exists..", 401);
+        errorHandling.error(
+          messages.UNAUTHORISED_EMAIL.message,
+          messages.UNAUTHORISED_EMAIL.statuscode
+        );
       }
       loadeduser = user;
       return bcrypt.compare(password, user.password);
     })
     .then((IsEqual) => {
       if (!IsEqual) {
-        errorHandling.error("Incorrect Password", 401);
+        errorHandling.error(
+          messages.UNAUTHORISED_PASS.message,
+          messages.UNAUTHORISED_PASS.statuscode
+        );
       }
       const token = jwt.sign(
         { email: loadeduser.email, userId: loadeduser._id.toString() },
         "somesupersecretsecret",
-        { expiresIn: "7d" }
+        { expiresIn: "1h" }
       );
-      return res.status(200).json({
-        message: "Login Succeded",
+      return res.status(messages.SUCCESS.statuscode).json({
+        message: messages.SUCCESS.message,
         token: token,
         userId: loadeduser._id.toString(),
       });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 
@@ -79,44 +93,69 @@ exports.getSingleUser = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        errorHandling.error("Profile not found...", 404);
+        errorHandling.error(
+          messages.NOT_FOUND.message,
+          messages.NOT_FOUND.statuscode
+        );
       }
-      return res.status(200).json({
-        status: "true",
-        message: "Profile found successfully",
+      return res.status(messages.SUCCESS.statuscode).json({
+        message: messages.SUCCESS.message,
         user: user,
       });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };
 
 exports.updateUser = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    errorHandling.error(
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode
+    );
+  }
   const userId = req.params.userId;
   const email = req.body.email;
   const password = req.body.password;
-  User.findById(userId)
-    .then((user) => {
-      if (!user) {
-        errorHandling.error("Profile not found", 404);
-      }
-      if (user._id.toString() !== req.userId) {
-        errorHandling.error("Not authorised", 403);
-      }
-      user.email = email;
-      user.password = password;
-      return user.save();
-    })
-    .then((profile) => {
-      return res.status(201).json({
-        status: "true",
-        message: "Profile updated succesfully",
-        userId: profile._id,
-      });
+
+  bcrypt
+    .hash(password, 12)
+    .then((hashedPassword) => {
+      return User.findById(userId)
+        .then((user) => {
+          if (!user) {
+            errorHandling.error(
+              messages.NOT_FOUND.message,
+              messages.NOT_FOUND.statuscode
+            );
+          }
+          if (user._id.toString() !== req.userId) {
+            errorHandling.error(
+              messages.FORBIDDEN.message,
+              messages.FORBIDDEN.statuscode
+            );
+          }
+          user.email = email;
+          user.password = hashedPassword;
+          return user.save();
+        })
+        .then((profile) => {
+          return res.status(messages.SUCCESS.statuscode).json({
+            message: messages.SUCCESS.message,
+            userId: profile._id,
+          });
+        });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = messages.INTERNAL_SERVER_ERROR.statuscode;
+      }
+      next(err);
     });
 };
 
@@ -128,18 +167,27 @@ exports.deleteUser = (req, res, next) => {
     })
     .then((user) => {
       if (!user) {
-        errorHandling.error("User not found", 404);
+        errorHandling.error(
+          messages.NOT_FOUND.message,
+          messages.NOT_FOUND.statuscode
+        );
       }
-      if (user.id.toString() !== req.userId) {
-        errorHandling.error("Not authorised", 403);
+      if (user._id.toString() !== req.userId) {
+        errorHandling.error(
+          messages.FORBIDDEN.message,
+          messages.FORBIDDEN.statuscode
+        );
       }
     })
     .then(() => {
       return res
-        .status(201)
-        .json({ status: "true", message: "Profile deleted successfully" });
+        .status(messages.SUCCESS.statuscode)
+        .json({ message: messages.SUCCESS.message });
     })
     .catch((err) => {
-      errorHandling.error500(err);
+      if (!err.statusCode) {
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
+      }
+      next(err);
     });
 };

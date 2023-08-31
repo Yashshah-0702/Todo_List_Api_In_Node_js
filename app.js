@@ -27,12 +27,10 @@ app.use(
     storage: fileStorage,
     fileFilter: fileFilter,
     limits: {
-      fileSize: 1024 * 1024 * 5,
+      fileSize: 1024 * 1024 * 1,
     },
   }).single("uploads")
 );
-
-// app.use(express.static(path.join(__dirname, "upload")));111
 
 app.use(corsOptions.Cors);
 

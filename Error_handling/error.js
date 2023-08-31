@@ -1,5 +1,3 @@
-const statusCodes = require('./statusCodes')
-
 exports.errorHandling = (error, req, res, next) => {
   const status = error.statusCode || 500;
   const message = error.message;
@@ -14,10 +12,8 @@ exports.errorHandling = (error, req, res, next) => {
   });
 };
 
-exports.error = (message,status)=>{
-   const error = new Error(message)
-   error.statusCode = status
-   throw error
-}
-
-
+exports.error = (message, status) => {
+  const error = new Error(message);
+  error.statusCode = status;
+  throw error;
+};

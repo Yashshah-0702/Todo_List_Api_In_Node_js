@@ -10,9 +10,7 @@ const { validationResult } = require("express-validator");
 
 const errorHandling = require("../Error_handling/error");
 
-const statusCodes = require("../Error_handling/statusCodes");
-
-const errorMessages = require("../Error_handling/errorMessages");
+const messages = require("../Error_handling/Messages");
 
 const sharp = require("sharp");
 
@@ -39,17 +37,16 @@ exports.getPosts = (req, res, next) => {
         .sort({ [sortBy]: 1 });
     })
     .then((result) => {
-      return res.status(200).json({
+      return res.status(messages.SUCCESS.statuscode).json({
         meta: {
-          message: "All Posts Found",
+          message: messages.SUCCESS.message,
           posts: result,
-          statusCode: 200,
         },
       });
     })
     .catch((err) => {
       if (!err.statusCode) {
-        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
       }
       next(err);
     });
@@ -60,12 +57,15 @@ exports.createPosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     errorHandling.error(
-      "Creating post failed...",
-      statusCodes.UNPROCESSABLE_ENTITY
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode
     );
   }
   if (!req.file) {
-    errorHandling.error("No image found...", statusCodes.UNPROCESSABLE_ENTITY);
+    errorHandling.error(
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode
+    );
   }
   const compressionQuality = 80;
   const title = req.body.title;
@@ -85,7 +85,10 @@ exports.createPosts = (req, res, next) => {
     .jpeg({ quality: compressionQuality })
     .toFile(resizedTempPath, (err, info) => {
       if (err) {
-         errorHandling.error("image not suitable",statusCodes.UNPROCESSABLE_ENTITY)
+        errorHandling.error(
+          messages.UNPROCESSABLE_ENTITY.message,
+          messages.UNPROCESSABLE_ENTITY.statuscode
+        );
       } else {
         fs.unlinkSync(uploads);
         fs.renameSync(resizedTempPath, uploads);
@@ -95,8 +98,8 @@ exports.createPosts = (req, res, next) => {
     .save()
     .then((result) => {
       post = result;
-      return res.status(statusCodes.CREATED).json({
-        message: "Post Created Succesfully",
+      return res.status(messages.CREATED.statuscode).json({
+        message: messages.CREATED.message,
         post: result,
       });
     })
@@ -113,7 +116,7 @@ exports.createPosts = (req, res, next) => {
     })
     .catch((err) => {
       if (!err.statusCode) {
-        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
       }
       next(err);
     });
@@ -124,16 +127,19 @@ exports.getSinglePost = (req, res, next) => {
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        errorHandling.error("Post not found", statusCodes.NOT_FOUND);
+        errorHandling.error(
+          messages.NOT_FOUND.message,
+          messages.NOT_FOUND.statuscode
+        );
       }
-      return res.status(statusCodes.SUCCESS).json({
-        message: "Post Founded Successfully",
+      return res.status(messages.SUCCESS.statuscode).json({
+        message: messages.SUCCESS.message,
         post: post,
       });
     })
     .catch((err) => {
       if (!err.statusCode) {
-        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
       }
       next(err);
     });
@@ -144,8 +150,8 @@ exports.updatePosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     errorHandling.error(
-      "Updating post failed...",
-      statusCodes.UNPROCESSABLE_ENTITY
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode
     );
   }
   const postsId = req.params.postsId;
@@ -157,15 +163,24 @@ exports.updatePosts = (req, res, next) => {
     uploads = req.file.path;
   }
   if (!uploads) {
-    errorHandling.error("No file picked...", statusCodes.UNPROCESSABLE_ENTITY);
+    errorHandling.error(
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode
+    );
   }
   Todo.findById(postsId)
     .then((post) => {
       if (!post) {
-        errorHandling.error("Post not found...", statusCodes.NOT_FOUND);
+        errorHandling.error(
+          messages.NOT_FOUND.message,
+          messages.NOT_FOUND.statuscode
+        );
       }
       if (post.userId.toString() !== req.userId) {
-        errorHandling.error("Not Authorised", statusCodes.FORBIDDEN);
+        errorHandling.error(
+          messages.FORBIDDEN.message,
+          messages.FORBIDDEN.statuscode
+        );
       }
       if (uploads !== post.uploads) {
         clearUploads(post.uploads);
@@ -178,12 +193,12 @@ exports.updatePosts = (req, res, next) => {
     })
     .then((result) => {
       return res
-        .status(statusCodes.SUCCESS)
-        .json({ message: "Post updated successfully", post: result });
+        .status(messages.SUCCESS.statuscode)
+        .json({ message: messages.SUCCESS.message, post: result });
     })
     .catch((err) => {
       if (!err.statusCode) {
-        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
       }
       next(err);
     });
@@ -195,12 +210,15 @@ exports.deletePosts = (req, res, next) => {
     .then((post) => {
       if (!post) {
         errorHandling.error(
-          "post not found...",
-          statusCodes.UNPROCESSABLE_ENTITY
+          messages.UNPROCESSABLE_ENTITY.message,
+          messages.UNPROCESSABLE_ENTITY.statuscode
         );
       }
       if (post.userId.toString() !== req.userId) {
-        errorHandling.error("Not authorised", statusCodes.FORBIDDEN);
+        errorHandling.error(
+          messages.FORBIDDEN.message,
+          messages.FORBIDDEN.statuscode
+        );
       }
       clearUploads(post.uploads);
       return Todo.findByIdAndRemove(postsId);
@@ -214,12 +232,12 @@ exports.deletePosts = (req, res, next) => {
     })
     .then(() => {
       return res
-        .status(statusCodes.SUCCESS)
-        .json({ message: "Post Deleted Successfully" });
+        .status(messages.SUCCESS.statuscode)
+        .json({ message: messages.SUCCESS.message });
     })
     .catch((err) => {
       if (!err.statusCode) {
-        err.statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+        err.statusCode = messages.INTERNAL_SERVER_ERROR;
       }
       next(err);
     });

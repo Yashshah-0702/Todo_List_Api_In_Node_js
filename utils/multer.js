@@ -1,8 +1,8 @@
-const multer = require('multer')
+const multer = require("multer");
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null,"uploads");
+    cb(null, "uploads");
   },
   filename: (req, file, cb) => {
     cb(null, new Date().toISOString() + "-" + file.originalname);
@@ -22,6 +22,6 @@ const fileFilter = (req, file, cb) => {
 };
 
 module.exports = {
-    fileStorage:fileStorage,
-    fileFilter:fileFilter
-}
+  fileStorage: fileStorage,
+  fileFilter: fileFilter,
+};
