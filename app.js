@@ -14,7 +14,7 @@ const Todos = require("./Routes/todo");
 
 const Auth = require("./Routes/auth");
 
-const ErrorHandling = require("./Error_handling/error");
+const ErrorHandling = require("./utils/error");
 
 const corsOptions = require("./utils/cors");
 

@@ -8,9 +8,9 @@ const emailTemplate = require("../nodemailer/email");
 
 const { validationResult } = require("express-validator");
 
-const errorHandling = require("../Error_handling/error");
+const errorHandling = require("../utils/error");
 
-const messages = require("../Error_handling/Messages");
+const messages = require("../utils/Messages");
 
 const sharp = require("sharp");
 
