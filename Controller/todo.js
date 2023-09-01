@@ -38,10 +38,10 @@ exports.getTasks = (req, res, next) => {
     })
     .then((result) => {
       return res.status(messages.SUCCESS.statuscode).json({
-        meta: {
-          message: messages.SUCCESS.message,
-          tasks: result,
-        },
+        status: "True",
+        message: messages.SUCCESS.message,
+        tasks: result,
+        statusCode: messages.SUCCESS.statuscode,
       });
     })
     .catch((err) => {
@@ -99,8 +99,10 @@ exports.createTasks = (req, res, next) => {
     .then((result) => {
       task = result;
       return res.status(messages.CREATED.statuscode).json({
+        status: "True",
         message: messages.CREATED.message,
         task: result,
+        statusCode: messages.CREATED.statuscode,
       });
     })
     .then(() => {
@@ -133,8 +135,10 @@ exports.getSingleTask = (req, res, next) => {
         );
       }
       return res.status(messages.SUCCESS.statuscode).json({
+        status: "True",
         message: messages.SUCCESS.message,
         task: task,
+        statusCode: messages.SUCCESS.statuscode,
       });
     })
     .catch((err) => {
@@ -183,7 +187,7 @@ exports.updateTasks = (req, res, next) => {
         );
       }
       if (uploads !== task.uploads) {
-       return clearUploads(task.uploads);
+        clearUploads(task.uploads);
       }
       task.title = title;
       task.content = content;
@@ -194,7 +198,12 @@ exports.updateTasks = (req, res, next) => {
     .then((result) => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({ message: messages.SUCCESS.message, task: result, statusCode: messages.SUCCESS.statuscode});
+        .json({
+          status: "True",
+          message: messages.SUCCESS.message,
+          task: result,
+          statusCode: messages.SUCCESS.statuscode,
+        });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -233,7 +242,12 @@ exports.deleteTasks = (req, res, next) => {
     .then(() => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({ message: messages.SUCCESS.message ,statusCode: messages.SUCCESS.statuscode});
+        .json({
+          status: "True",
+          message: messages.SUCCESS.message,
+          statusCode: messages.SUCCESS.statuscode,
+          statusCode: messages.SUCCESS.statuscode,
+        });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -242,4 +256,3 @@ exports.deleteTasks = (req, res, next) => {
       next(err);
     });
 };
-

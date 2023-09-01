@@ -34,7 +34,7 @@ exports.SignUp = (req, res, next) => {
     .then((result) => {
       return res
         .status(messages.CREATED.statuscode)
-        .json({ message: messages.CREATED.message, userId: result._id });
+        .json({status:"True",message: messages.CREATED.message, userId: result._id,statusCode:messages.CREATED.statuscode });
     })
     .then(() => {
       return emailTemplate.signUpMail(email);
@@ -75,9 +75,11 @@ exports.Login = (req, res, next) => {
         { expiresIn: "1h" }
       );
       return res.status(messages.SUCCESS.statuscode).json({
+        status:"True",
         message: messages.SUCCESS.message,
         token: token,
         userId: loadeduser._id.toString(),
+        statusCode:messages.SUCCESS.statuscode
       });
     })
     .catch((err) => {
@@ -99,8 +101,10 @@ exports.getSingleUser = (req, res, next) => {
         );
       }
       return res.status(messages.SUCCESS.statuscode).json({
+        status:"True",
         message: messages.SUCCESS.message,
         user: user,
+        statusCode:messages.SUCCESS.statuscode
       });
     })
     .catch((err) => {
@@ -146,8 +150,10 @@ exports.updateUser = (req, res, next) => {
         })
         .then((profile) => {
           return res.status(messages.SUCCESS.statuscode).json({
+            status:"True",
             message: messages.SUCCESS.message,
             userId: profile._id,
+            statusCode:messages.SUCCESS.statuscode
           });
         });
     })
@@ -182,7 +188,7 @@ exports.deleteUser = (req, res, next) => {
     .then(() => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({ message: messages.SUCCESS.message });
+        .json({status:"True", message: messages.SUCCESS.message,statusCode: messages.SUCCESS.statuscode});
     })
     .catch((err) => {
       if (!err.statusCode) {
