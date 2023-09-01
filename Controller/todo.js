@@ -18,7 +18,7 @@ const path = require("path");
 
 const fs = require("fs");
 
-exports.getPosts = (req, res, next) => {
+exports.getTasks = (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
   const titleQuery = req.query.title;
@@ -40,7 +40,7 @@ exports.getPosts = (req, res, next) => {
       return res.status(messages.SUCCESS.statuscode).json({
         meta: {
           message: messages.SUCCESS.message,
-          posts: result,
+          tasks: result,
         },
       });
     })
@@ -52,8 +52,8 @@ exports.getPosts = (req, res, next) => {
     });
 };
 
-exports.createPosts = (req, res, next) => {
-  let post;
+exports.createTasks = (req, res, next) => {
+  let task;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     errorHandling.error(
@@ -97,10 +97,10 @@ exports.createPosts = (req, res, next) => {
   todo
     .save()
     .then((result) => {
-      post = result;
+      task = result;
       return res.status(messages.CREATED.statuscode).json({
         message: messages.CREATED.message,
-        post: result,
+        task: result,
       });
     })
     .then(() => {
@@ -112,7 +112,7 @@ exports.createPosts = (req, res, next) => {
     })
 
     .then((user) => {
-      return emailTemplate.sendNewTaskEmail(user.email, post);
+      return emailTemplate.sendNewTaskEmail(user.email, task);
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -122,11 +122,11 @@ exports.createPosts = (req, res, next) => {
     });
 };
 
-exports.getSinglePost = (req, res, next) => {
-  const postsId = req.params.postsId;
-  Todo.findById(postsId)
-    .then((post) => {
-      if (!post) {
+exports.getSingleTask = (req, res, next) => {
+  const tasksId = req.params.tasksId;
+  Todo.findById(tasksId)
+    .then((task) => {
+      if (!task) {
         errorHandling.error(
           messages.NOT_FOUND.message,
           messages.NOT_FOUND.statuscode
@@ -134,7 +134,7 @@ exports.getSinglePost = (req, res, next) => {
       }
       return res.status(messages.SUCCESS.statuscode).json({
         message: messages.SUCCESS.message,
-        post: post,
+        task: task,
       });
     })
     .catch((err) => {
@@ -146,7 +146,7 @@ exports.getSinglePost = (req, res, next) => {
 };
 1;
 
-exports.updatePosts = (req, res, next) => {
+exports.updateTasks = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     errorHandling.error(
@@ -154,7 +154,7 @@ exports.updatePosts = (req, res, next) => {
       messages.UNPROCESSABLE_ENTITY.statuscode
     );
   }
-  const postsId = req.params.postsId;
+  const tasksId = req.params.tasksId;
   const title = req.body.title;
   const content = req.body.content;
   let uploads = req.body.uploads;
@@ -168,33 +168,33 @@ exports.updatePosts = (req, res, next) => {
       messages.UNPROCESSABLE_ENTITY.statuscode
     );
   }
-  Todo.findById(postsId)
-    .then((post) => {
-      if (!post) {
+  Todo.findById(tasksId)
+    .then((task) => {1
+      if (!task) {
         errorHandling.error(
           messages.NOT_FOUND.message,
           messages.NOT_FOUND.statuscode
         );
       }
-      if (post.userId.toString() !== req.userId) {
+      if (task.userId.toString() !== req.userId) {
         errorHandling.error(
           messages.FORBIDDEN.message,
           messages.FORBIDDEN.statuscode
         );
       }
-      if (uploads !== post.uploads) {
-        clearUploads(post.uploads);
+      if (uploads !== task.uploads) {
+        clearUploads(task.uploads);
       }
-      post.title = title;
-      post.content = content;
-      post.uploads = uploads;
-      post.description = description;
-      return post.save();
+      task.title = title;
+      task.content = content;
+      task.uploads = uploads;
+      task.description = description;
+      return task.save();
     })
     .then((result) => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({ message: messages.SUCCESS.message, post: result });
+        .json({ message: messages.SUCCESS.message, task: result });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -204,30 +204,30 @@ exports.updatePosts = (req, res, next) => {
     });
 };
 
-exports.deletePosts = (req, res, next) => {
-  const postsId = req.params.postsId;
-  Todo.findById(postsId)
-    .then((post) => {
-      if (!post) {
+exports.deleteTasks = (req, res, next) => {
+  const tasksId = req.params.tasksId;
+  Todo.findById(tasksId)
+    .then((task) => {
+      if (!task) {
         errorHandling.error(
           messages.UNPROCESSABLE_ENTITY.message,
           messages.UNPROCESSABLE_ENTITY.statuscode
-        );
+        );1
       }
-      if (post.userId.toString() !== req.userId) {
+      if (task.userId.toString() !== req.userId) {
         errorHandling.error(
           messages.FORBIDDEN.message,
-          messages.FORBIDDEN.statuscode
-        );
+          messages.FORBIDDEN.statuscode1111111111
+       );
       }
-      clearUploads(post.uploads);
-      return Todo.findByIdAndRemove(postsId);
+      clearUploads(task.uploads);
+      return Todo.findByIdAndRemove(tasksId);
     })
     .then(() => {
       return User.findById(req.userId);
     })
     .then((user) => {
-      user.todoTasks.pull(postsId);
+      user.todoTasks.pull(tasksId);   
       return user.save();
     })
     .then(() => {
@@ -242,3 +242,8 @@ exports.deletePosts = (req, res, next) => {
       next(err);
     });
 };
+
+
+exports.ShareTask = (req,res,next)=>{
+  const taskId = req.params.tasksId
+}

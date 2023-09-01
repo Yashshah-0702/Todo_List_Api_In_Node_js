@@ -18,18 +18,29 @@ exports.SignupValidation = [
 ];
 
 exports.UpdateUserValidation = [
+  // Check if email is provided and validate it only when it's present
   body("email")
+    .optional() // This makes the email field optional
     .isEmail()
-    .withMessage("plz enter a valid email...")
+    .withMessage("Please enter a valid email...")
     .custom((value, { req }) => {
-      return User.findOne({ email: value }).then((userDoc) => {
-        if (userDoc) {
-          return Promise.reject("Email already exists..");
-        }
-      });
+      // Only check for email existence if an email is provided
+      if (value) {
+        return User.findOne({ email: value }).then((userDoc) => {
+          if (userDoc) {
+            return Promise.reject("Email already exists..");
+          }
+        });
+      }
+      return true; // Return true if no email is provided
     })
     .normalizeEmail(),
-  body("password").trim().isLength({ min: 5 }),
+
+  // Password validation (always checked when provided)
+  body("password")
+    .optional() // This makes the password field optional
+    .trim()
+    .isLength({ min: 5 }),
 ];
 
 exports.CreatePostValidation = [

@@ -8,24 +8,26 @@ const isValidation = require("../middleware/is-validation");
 
 const router = express.Router();
 
-router.get("/posts", isAuth, todoController.getPosts);
+router.get("/task", isAuth, todoController.getTasks);
 
 router.post(
-  "/posts",
+  "/task",
   isAuth,
   isValidation.CreatePostValidation,
-  todoController.createPosts
+  todoController.createTasks
 );
 
-router.get("/posts/:postsId", isAuth, todoController.getSinglePost);
+router.get("/task/:tasksId", isAuth, todoController.getSingleTask);
 
 router.put(
-  "/posts/:postsId",
+  "/task/:tasksId",
   isAuth,
   isValidation.UpdatePostValidation,
-  todoController.updatePosts
+  todoController.updateTasks
 );
 
-router.delete("/posts/:postsId", isAuth, todoController.deletePosts);
+router.delete("/task/:tasksId", isAuth, todoController.deleteTasks);
 
-module.exports = router;
+router.post('/share-task/:tasksId',todoController.ShareTask)
+
+module.exports = router;1
