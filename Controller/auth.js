@@ -114,6 +114,7 @@ exports.getSingleUser = (req, res, next) => {
 exports.updateUser = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log(errors.array())
     errorHandling.error(
       messages.UNPROCESSABLE_ENTITY.message,
       messages.UNPROCESSABLE_ENTITY.statuscode

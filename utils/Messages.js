@@ -3,9 +3,9 @@ module.exports = {
   SUCCESS: { statuscode: 200, message: "Successfully action done" },
   UNPROCESSABLE_ENTITY: {
     statuscode: 422,
-    message: "Check input data, Unprocessable entity",
+    message: "Check your data, Unprocessable entity",
   },
-  NOT_FOUND: { statuscode: 404, message: "Data not found" },
+  NOT_FOUND: { statuscode: 404, message: "Not found..." },
   FORBIDDEN: {
     statuscode: 403,
     message: "You dont have access for this action, unauthorised access",

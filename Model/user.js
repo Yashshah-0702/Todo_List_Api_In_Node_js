@@ -17,6 +17,22 @@ const userSchema = new Schema({
       ref: "Todo",
     },
   ],
+  sharingHistory: [
+    {
+      taskId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Todo", 
+      },
+      sharedTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", 
+      },
+      sharedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", userSchema);

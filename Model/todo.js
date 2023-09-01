@@ -25,6 +25,7 @@ const todoSchema = new Schema(
       ref: "User",
       required: true,
     },
+    sharedBy:[{type:Schema.Types.ObjectId,ref:'User'}],
     sharedWith: [{ type: Schema.Types.ObjectId, ref: "User" }],
     sharingHistory: [
       {
