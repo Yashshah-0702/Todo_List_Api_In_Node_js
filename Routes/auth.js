@@ -4,9 +4,9 @@ const router = express.Router();
 
 const AuthController = require("../Controller/auth");
 
-const isValidation = require("../middleware/is-validation");
+const isValidation = require("../Middleware/is-validation");
 
-const isAuth = require("../middleware/is-Auth");
+const isAuth = require("../Middleware/is-Auth");
 
 router.put("/signup", isValidation.SignupValidation, AuthController.SignUp);
 

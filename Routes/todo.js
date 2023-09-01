@@ -2,9 +2,9 @@ const express = require("express");
 
 const todoController = require("../Controller/todo");
 
-const isAuth = require("../middleware/is-Auth");
+const isAuth = require("../Middleware/is-Auth");
 
-const isValidation = require("../middleware/is-validation");
+const isValidation = require("../Middleware/is-validation");
 
 const router = express.Router();
 

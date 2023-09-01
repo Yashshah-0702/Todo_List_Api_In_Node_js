@@ -2,15 +2,15 @@ const Todo = require("../Model/todo");
 
 const User = require("../Model/user");
 
-const clearUploads = require("../utils/clearUploads");
+const clearUploads = require("../Utils/clearUploads");
 
-const emailTemplate = require("../nodemailer/email");
+const emailTemplate = require("../Nodemailer/email");
 
 const { validationResult } = require("express-validator");
 
-const errorHandling = require("../utils/error");
+const errorHandling = require("../Utils/error");
 
-const messages = require("../utils/Messages");
+const messages = require("../Utils/messages");
 
 const sharp = require("sharp");
 

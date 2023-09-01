@@ -4,13 +4,13 @@ const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
 
-const emailTemplate = require("../nodemailer/email");
+const emailTemplate = require("../Nodemailer/email");
 
 const { validationResult } = require("express-validator");
 
-const errorHandling = require("../utils/error");
+const errorHandling = require("../Utils/error");
 
-const messages = require("../utils/Messages");
+const messages = require("../Utils/messages");
 
 exports.SignUp = (req, res, next) => {
   const errors = validationResult(req);

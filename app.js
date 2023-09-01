@@ -1,22 +1,20 @@
 const express = require("express");
 
-const path = require("path");
-
 const bodyParser = require("body-parser");
 
 const multer = require("multer");
 
-const { fileStorage, fileFilter } = require("./utils/multer");
+const { fileStorage, fileFilter } = require("./Utils/multer");
 
-const connectToDatabase = require("./utils/mongoose");
+const connectToDatabase = require("./Utils/mongoose");
 
 const Todos = require("./Routes/todo");
 
 const Auth = require("./Routes/auth");
 
-const ErrorHandling = require("./utils/error");
+const ErrorHandling = require("./Utils/error");
 
-const corsOptions = require("./utils/cors");
+const corsOptions = require("./Utils/cors");
 
 const app = express();
 
