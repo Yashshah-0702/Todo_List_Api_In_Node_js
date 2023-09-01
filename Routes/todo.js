@@ -28,6 +28,4 @@ router.put(
 
 router.delete("/task/:tasksId", isAuth, todoController.deleteTasks);
 
-router.post('/share-task/:tasksId',isAuth,todoController.ShareTask)
-
-module.exports = router;1
+module.exports = router;

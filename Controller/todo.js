@@ -170,7 +170,6 @@ exports.updateTasks = (req, res, next) => {
   }
   Todo.findById(tasksId)
     .then((task) => {
-      1;
       if (!task) {
         errorHandling.error(
           messages.NOT_FOUND.message,
@@ -184,7 +183,7 @@ exports.updateTasks = (req, res, next) => {
         );
       }
       if (uploads !== task.uploads) {
-        clearUploads(task.uploads);
+       return clearUploads(task.uploads);
       }
       task.title = title;
       task.content = content;
@@ -195,7 +194,7 @@ exports.updateTasks = (req, res, next) => {
     .then((result) => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({ message: messages.SUCCESS.message, task: result });
+        .json({ message: messages.SUCCESS.message, task: result, statusCode: messages.SUCCESS.statuscode});
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -234,7 +233,7 @@ exports.deleteTasks = (req, res, next) => {
     .then(() => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({ message: messages.SUCCESS.message });
+        .json({ message: messages.SUCCESS.message ,statusCode: messages.SUCCESS.statuscode});
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -244,54 +243,3 @@ exports.deleteTasks = (req, res, next) => {
     });
 };
 
-exports.ShareTask = (req, res, next) => {
-  const taskId = req.params.tasksId;
-  const recipientUserId = req.body.recipientUserId;
-  User.findById(recipientUserId)
-    .then((user) => {
-      if (!user) {
-        errorHandling.error(
-          messages.NOT_FOUND.message,
-          messages.NOT_FOUND.statuscode
-        );
-      }
-      return Todo.findById(taskId);
-    })
-    .then((task) => {
-      if (!task) {
-        errorHandling.error(
-          messages.UNPROCESSABLE_ENTITY.message,
-          messages.UNPROCESSABLE_ENTITY.statuscode
-        );
-      }
-      if (task.userId.toString() !== req.userId) {
-        errorHandling.error(
-          messages.FORBIDDEN.message,
-          messages.FORBIDDEN.statuscode
-        );
-      }
-      if (!task.sharedBy.includes(req.userId)) {
-        task.sharedBy.push(req.userId);
-      }
-      task.sharedWith.push(recipientUserId);
-      task.sharingHistory.push({ sharedTo: recipientUserId });
-      return task.save();
-    }).then(()=>{
-      return User.findById(req.userId)
-    }).then(user=>{
-      user.sharingHistory.push({ taskId, sharedTo: recipientUserId });
-      return user.save();
-    })
-    .then((updatedTask) => {
-      return res.status(messages.SUCCESS.statuscode).json({
-        message: messages.SUCCESS.message,
-        task: updatedTask,
-      });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = messages.INTERNAL_SERVER_ERROR;
-      }
-      next(err);
-    });
-};
