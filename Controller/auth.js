@@ -15,17 +15,24 @@ const messages = require("../Utils/messages");
 exports.SignUp = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    errorHandling.error(
+    errorHandling.validationErrors(
       messages.UNPROCESSABLE_ENTITY.message,
-      messages.UNPROCESSABLE_ENTITY.statuscode
+      messages.UNPROCESSABLE_ENTITY.statuscode,
+      errors
     );
   }
+  const name = req.body.name;
+  const age = req.body.age;
+  const gender = req.body.gender;
   const email = req.body.email;
   const password = req.body.password;
   bcrypt
     .hash(password, 12)
     .then((hashedPassword) => {
       const user = new User({
+        name:name,
+        age:age,
+        gender:gender,
         email: email,
         password: hashedPassword,
       });
@@ -34,7 +41,12 @@ exports.SignUp = (req, res, next) => {
     .then((result) => {
       return res
         .status(messages.CREATED.statuscode)
-        .json({status:"True",message: messages.CREATED.message, userId: result._id,statusCode:messages.CREATED.statuscode });
+        .json({
+          status: "True",
+          message: messages.CREATED.message,
+          userId: result._id,
+          statusCode: messages.CREATED.statuscode,
+        });
     })
     .then(() => {
       return emailTemplate.signUpMail(email);
@@ -75,11 +87,11 @@ exports.Login = (req, res, next) => {
         { expiresIn: "1h" }
       );
       return res.status(messages.SUCCESS.statuscode).json({
-        status:"True",
+        status: "True",
         message: messages.SUCCESS.message,
         token: token,
         userId: loadeduser._id.toString(),
-        statusCode:messages.SUCCESS.statuscode
+        statusCode: messages.SUCCESS.statuscode,
       });
     })
     .catch((err) => {
@@ -101,10 +113,10 @@ exports.getSingleUser = (req, res, next) => {
         );
       }
       return res.status(messages.SUCCESS.statuscode).json({
-        status:"True",
+        status: "True",
         message: messages.SUCCESS.message,
         user: user,
-        statusCode:messages.SUCCESS.statuscode
+        statusCode: messages.SUCCESS.statuscode,
       });
     })
     .catch((err) => {
@@ -118,44 +130,66 @@ exports.getSingleUser = (req, res, next) => {
 exports.updateUser = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    errorHandling.error(
+    return errorHandling.validationErrors(
       messages.UNPROCESSABLE_ENTITY.message,
-      messages.UNPROCESSABLE_ENTITY.statuscode
-    );
+      messages.UNPROCESSABLE_ENTITY.statuscode,
+      errors 
+    )(req, res, next);
   }
+
   const userId = req.params.userId;
+  // const updateFields = req.body;
+  const name = req.body.name;
+  const age = req.body.age;
+  const gender = req.body.gender;
   const email = req.body.email;
   const password = req.body.password;
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        return errorHandling.error(
+          messages.NOT_FOUND.message,
+          messages.NOT_FOUND.statuscode
+        )(req, res, next);
+      }
+      if (user._id.toString() !== req.userId) {
+        return errorHandling.error(
+          messages.FORBIDDEN.message,
+          messages.FORBIDDEN.statuscode
+        )(req, res, next);
+      }
+      if (name !== undefined) {
+        user.name = name;
+      }
 
-  bcrypt
-    .hash(password, 12)
-    .then((hashedPassword) => {
-      return User.findById(userId)
-        .then((user) => {
-          if (!user) {
-            errorHandling.error(
-              messages.NOT_FOUND.message,
-              messages.NOT_FOUND.statuscode
-            );
-          }
-          if (user._id.toString() !== req.userId) {
-            errorHandling.error(
-              messages.FORBIDDEN.message,
-              messages.FORBIDDEN.statuscode
-            );
-          }
-          user.email = email;
+      if (age !== undefined) {
+        user.age = age;
+      }
+
+      if (gender !== undefined) {
+        user.gender = gender;
+      }
+
+      if (email !== undefined) {
+        user.email = email;
+      }
+
+      if (password !== undefined) {
+        return bcrypt.hash(password, 12).then((hashedPassword) => {
           user.password = hashedPassword;
-          return user.save();
-        })
-        .then((profile) => {
-          return res.status(messages.SUCCESS.statuscode).json({
-            status:"True",
-            message: messages.SUCCESS.message,
-            userId: profile._id,
-            statusCode:messages.SUCCESS.statuscode
-          });
+          return user.save(); 
         });
+      } else {
+        return user.save(); 
+      }
+    })
+    .then((updatedUser) => {
+      return res.status(messages.SUCCESS.statuscode).json({
+        status: true,
+        message: messages.SUCCESS.message,
+        userId: updatedUser._id,
+        statusCode: messages.SUCCESS.statuscode,
+      });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -188,7 +222,11 @@ exports.deleteUser = (req, res, next) => {
     .then(() => {
       return res
         .status(messages.SUCCESS.statuscode)
-        .json({status:"True", message: messages.SUCCESS.message,statusCode: messages.SUCCESS.statuscode});
+        .json({
+          status: "True",
+          message: messages.SUCCESS.message,
+          statusCode: messages.SUCCESS.statuscode,
+        });
     })
     .catch((err) => {
       if (!err.statusCode) {

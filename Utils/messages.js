@@ -4,8 +4,16 @@ module.exports = {
   UNPROCESSABLE_ENTITY: {
     statuscode: 422,
     message: "Check your data, Unprocessable entity",
+  },  UNPROCESSABLE_ENTITY_SHARP: {
+    statuscode: 422,
+    message: "Check your upload file extension, Unprocessable entity",
   },
-  NOT_FOUND: { statuscode: 404, message: "Not found..." },
+  UNPROCESSABLE_ENTITY_IMAGE: {
+    statuscode: 422,
+    message: "Upload file is missing",
+  },
+  NOT_FOUND: { statuscode: 404, message: "User not found, please check userId" },
+  NOT_FOUND_TASK: { statuscode: 404, message: "Task not found, please check taskId" },
   FORBIDDEN: {
     statuscode: 403,
     message: "You dont have access for this action, unauthorised access",
@@ -16,11 +24,11 @@ module.exports = {
   },
   UNAUTHORISED_EMAIL: {
     statuscode: 401,
-    message: "Invalid emailID or user does not exists",
+    message: "Please check input field or Invalid emailID or user does not exists",
   },
   UNAUTHORISED_PASS: {
     statuscode: 401,
-    message: "Incorrect password , please type correct password",
+    message: "Please check input field or Incorrect password , please type correct password",
   },
   INTERNAL_SERVER_ERROR: 500,
 };
