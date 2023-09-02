@@ -149,7 +149,6 @@ exports.getSingleTask = (req, res, next) => {
       next(err);
     });
 };
-1;
 
 exports.updateTasks = (req, res, next) => {
   const errors = validationResult(req);
