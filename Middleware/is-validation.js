@@ -30,6 +30,11 @@ exports.SignupValidation = [
     .isLength({ min: 3, max: 10 })
     .withMessage("Gender is required"),
   body("age").isNumeric().withMessage("Age is required"),
+  body("address")
+    .trim()
+    .optional()
+    .isLength({ min: 6, max: 60 })
+    .withMessage("Address must be between 6 to 60 characters"),
 ];
 exports.UpdateUserValidation = [
   body("email")
@@ -63,6 +68,11 @@ exports.UpdateUserValidation = [
     .isLength({ min: 5 })
     .withMessage("Password must be of 5 characters minimum "),
   body("age").trim().optional().isNumeric().withMessage("Age is required"),
+  body("address")
+    .trim()
+    .optional()
+    .isLength({ min: 6, max: 60 })
+    .withMessage("Address must be between 6 to 60 characters"),
 ];
 
 exports.CreatePostValidation = [

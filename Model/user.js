@@ -23,6 +23,9 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  address:{
+    type:String
+  },
   todoTasks: [
     {
       type: Schema.Types.ObjectId,

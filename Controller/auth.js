@@ -26,27 +26,27 @@ exports.SignUp = (req, res, next) => {
   const gender = req.body.gender;
   const email = req.body.email;
   const password = req.body.password;
+  const address = req.body.address;
   bcrypt
     .hash(password, 12)
     .then((hashedPassword) => {
       const user = new User({
-        name:name,
-        age:age,
-        gender:gender,
+        name: name,
+        age: age,
+        gender: gender,
         email: email,
+        address: address,
         password: hashedPassword,
       });
       return user.save();
     })
     .then((result) => {
-      return res
-        .status(messages.CREATED.statuscode)
-        .json({
-          status: "True",
-          message: messages.CREATED.message,
-          userId: result._id,
-          statusCode: messages.CREATED.statuscode,
-        });
+      return res.status(messages.CREATED.statuscode).json({
+        status: "True",
+        message: messages.CREATED.message,
+        userId: result._id,
+        statusCode: messages.CREATED.statuscode,
+      });
     })
     .then(() => {
       return emailTemplate.signUpMail(email);
@@ -133,12 +133,12 @@ exports.updateUser = (req, res, next) => {
     return errorHandling.validationErrors(
       messages.UNPROCESSABLE_ENTITY.message,
       messages.UNPROCESSABLE_ENTITY.statuscode,
-      errors 
+      errors
     )(req, res, next);
   }
 
   const userId = req.params.userId;
-  // const updateFields = req.body;
+  const address = req.body.address;
   const name = req.body.name;
   const age = req.body.age;
   const gender = req.body.gender;
@@ -162,6 +162,10 @@ exports.updateUser = (req, res, next) => {
         user.name = name;
       }
 
+      if(address !== undefined){
+        user.address = address
+      }
+
       if (age !== undefined) {
         user.age = age;
       }
@@ -177,10 +181,10 @@ exports.updateUser = (req, res, next) => {
       if (password !== undefined) {
         return bcrypt.hash(password, 12).then((hashedPassword) => {
           user.password = hashedPassword;
-          return user.save(); 
+          return user.save();
         });
       } else {
-        return user.save(); 
+        return user.save();
       }
     })
     .then((updatedUser) => {
@@ -220,13 +224,11 @@ exports.deleteUser = (req, res, next) => {
       }
     })
     .then(() => {
-      return res
-        .status(messages.SUCCESS.statuscode)
-        .json({
-          status: "True",
-          message: messages.SUCCESS.message,
-          statusCode: messages.SUCCESS.statuscode,
-        });
+      return res.status(messages.SUCCESS.statuscode).json({
+        status: "True",
+        message: messages.SUCCESS.message,
+        statusCode: messages.SUCCESS.statuscode,
+      });
     })
     .catch((err) => {
       if (!err.statusCode) {
