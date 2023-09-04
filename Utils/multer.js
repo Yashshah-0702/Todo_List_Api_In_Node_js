@@ -2,7 +2,7 @@ const multer = require("multer");
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads");
+    cb( null,"uploads");
   },
   filename: (req, file, cb) => {
     cb(null, new Date().toISOString() + "-" + file.originalname);
@@ -17,7 +17,7 @@ const fileFilter = (req, file, cb) => {
   ) {
     cb(null, true);
   } else {
-    cb(null,new Error("Invalid file format.."), false);
+    cb(new Error("Invalid file format, allowed formats are jpg,png,jpeg."), false);
   }
 };
 

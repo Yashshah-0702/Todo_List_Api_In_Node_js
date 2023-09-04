@@ -55,7 +55,6 @@ exports.getTasks = (req, res, next) => {
 exports.createTasks = (req, res, next) => {
   let task;
   const errors = validationResult(req);
-
   if (!errors.isEmpty()) {
     errorHandling.validationErrors(
       messages.UNPROCESSABLE_ENTITY.message,
