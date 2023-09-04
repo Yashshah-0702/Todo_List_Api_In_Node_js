@@ -24,7 +24,9 @@ exports.SignupValidation = [
   body("name")
     .trim()
     .isLength({ min: 4, max: 30 })
-    .withMessage("Name must be between 4 to 30 characters and must be full name."),
+    .withMessage(
+      "Name must be between 4 to 30 characters and must be full name."
+    ),
   body("gender")
     .trim()
     .isLength({ min: 3, max: 10 })
@@ -36,6 +38,9 @@ exports.SignupValidation = [
     .isLength({ min: 6, max: 60 })
     .withMessage("Address must be between 6 to 60 characters."),
 ];
+
+exports.Login = [body("email").trim(), body("password").trim()];
+
 exports.UpdateUserValidation = [
   body("email")
     .trim()

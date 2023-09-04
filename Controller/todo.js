@@ -87,10 +87,7 @@ exports.createTasks = (req, res, next) => {
     .jpeg({ quality: compressionQuality })
     .toFile(resizedTempPath, (err, info) => {
       if (err) {
-        errorHandling.error(
-          messages.UNPROCESSABLE_ENTITY_SHARP.message,
-          messages.UNPROCESSABLE_ENTITY_SHARP.statuscode
-        );
+        console.log(err);
       } else {
         fs.unlinkSync(uploads);
         fs.renameSync(resizedTempPath, uploads);
@@ -160,73 +157,77 @@ exports.updateTasks = (req, res, next) => {
     );
   }
   const tasksId = req.params.tasksId;
-  const compressionQuality = 80;
   const title = req.body.title;
   const content = req.body.content;
   let uploads = req.body.uploads;
   const description = req.body.description;
-  const resizedTempPath = path.join("uploads", "temp", req.file.filename);
   if (req.file) {
     uploads = req.file.path;
-  }
-  sharp(uploads)
-    .jpeg({ quality: compressionQuality })
-    .toFile(resizedTempPath, (err, info) => {
-      if (err) {
-        errorHandling.error(
-          messages.UNPROCESSABLE_ENTITY_SHARP.message,
-          messages.UNPROCESSABLE_ENTITY_SHARP.statuscode
-        );
-      } else {
-        fs.unlinkSync(uploads);
-        fs.renameSync(resizedTempPath, uploads);
-      }
-    });
-  Todo.findById(tasksId)
-    .then((task) => {
-      if (!task) {
-        errorHandling.error(
-          messages.NOT_FOUND_TASK.message,
-          messages.NOT_FOUND_TASK.statuscode
-        );
-      }
-      if (task.userId.toString() !== req.userId) {
-        errorHandling.error(
-          messages.FORBIDDEN.message,
-          messages.FORBIDDEN.statuscode
-        );
-      }
-      if (title !== undefined) {
-        task.title = title;
-      }
-      if (content !== undefined) {
-        task.content = content;
-      }
-      if (uploads !== undefined) {
-        if (uploads !== task.uploads) {
-          clearUploads(task.uploads);
+    const compressionQuality = 80;
+    const resizedTempPath = path.join("uploads", "temp", req.file.filename);
+
+    sharp(uploads)
+      .jpeg({ quality: compressionQuality })
+      .toFile(resizedTempPath, (err, info) => {
+        if (err) {
+          console.log(err);
+        } else {
+          fs.unlinkSync(uploads);
+          fs.renameSync(resizedTempPath, uploads);
+          updateTask();
         }
-        task.uploads = uploads;
-      }
-      if (description !== undefined) {
-        task.description = description;
-      }
-      return task.save();
-    })
-    .then((result) => {
-      return res.status(messages.SUCCESS.statuscode).json({
-        status: "True",
-        message: messages.SUCCESS.message,
-        task: result,
-        statusCode: messages.SUCCESS.statuscode,
       });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = messages.INTERNAL_SERVER_ERROR;
-      }
-      next(err);
-    });
+  } else {
+    updateTask();
+  }
+
+  function updateTask() {
+    Todo.findById(tasksId)
+      .then((task) => {
+        if (!task) {
+          errorHandling.error(
+            messages.NOT_FOUND_TASK.message,
+            messages.NOT_FOUND_TASK.statuscode
+          );
+        }
+        if (task.userId.toString() !== req.userId) {
+          errorHandling.error(
+            messages.FORBIDDEN.message,
+            messages.FORBIDDEN.statuscode
+          );
+        }
+        if (title !== undefined) {
+          task.title = title;
+        }
+        if (content !== undefined) {
+          task.content = content;
+        }
+        if (uploads !== undefined) {
+          if (uploads !== task.uploads) {
+            clearUploads(task.uploads);
+          }
+          task.uploads = uploads;
+        }
+        if (description !== undefined) {
+          task.description = description;
+        }
+        return task.save();
+      })
+      .then((result) => {
+        return res.status(messages.SUCCESS.statuscode).json({
+          status: "True",
+          message: messages.SUCCESS.message,
+          task: result,
+          statusCode: messages.SUCCESS.statuscode,
+        });
+      })
+      .catch((err) => {
+        if (!err.statusCode) {
+          err.statusCode = messages.INTERNAL_SERVER_ERROR;
+        }
+        next(err);
+      });
+  }
 };
 
 exports.deleteTasks = (req, res, next) => {

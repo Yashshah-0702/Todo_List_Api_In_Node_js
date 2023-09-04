@@ -60,6 +60,14 @@ exports.SignUp = (req, res, next) => {
 };
 
 exports.Login = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    errorHandling.validationErrors(
+      messages.UNPROCESSABLE_ENTITY.message,
+      messages.UNPROCESSABLE_ENTITY.statuscode,
+      errors
+    );
+  }
   const email = req.body.email;
   const password = req.body.password;
   let loadeduser;
@@ -136,7 +144,6 @@ exports.updateUser = (req, res, next) => {
       errors
     )(req, res, next);
   }
-
   const userId = req.params.userId;
   const address = req.body.address;
   const name = req.body.name;

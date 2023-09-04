@@ -10,7 +10,7 @@ const isAuth = require("../Middleware/is-Auth");
 
 router.put("/signup", isValidation.SignupValidation, AuthController.SignUp);
 
-router.post("/login", AuthController.Login);
+router.post("/login", isValidation.Login,AuthController.Login);
 
 router.get("/login/:userId", isAuth, AuthController.getSingleUser);
 
