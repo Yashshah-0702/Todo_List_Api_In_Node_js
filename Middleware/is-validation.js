@@ -29,7 +29,7 @@ exports.SignupValidation = [
     .trim()
     .isLength({ min: 3, max: 10 })
     .withMessage("Gender is required"),
-  body("age").isNumeric().withMessage("Age is required"),
+  body("age").trim().isNumeric().withMessage("Age is required"),
   body("address")
     .trim()
     .optional()
