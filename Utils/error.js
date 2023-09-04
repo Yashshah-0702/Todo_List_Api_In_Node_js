@@ -19,6 +19,7 @@ exports.error = (message, status) => {
 exports.validationErrors = (message,status,errors)=>{
   const error = new Error(message);
   error.statusCode = status;
-  error.data = errors.array().map((error) => error.msg);
+  error.data = errors.array()
+  // .map((error) => error.msg);
   throw error;
 }
