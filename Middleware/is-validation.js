@@ -9,7 +9,7 @@ exports.SignupValidation = [
       return value.replace(/\s+/g, "");
     })
     .isEmail()
-    .withMessage("Please enter a valid email...")
+    .withMessage("Please enter a valid email.")
     .custom((value, { req }) => {
       return User.findOne({ email: value }).then((userDoc) => {
         if (userDoc) {
@@ -20,21 +20,21 @@ exports.SignupValidation = [
   body("password")
     .trim()
     .isLength({ min: 5 })
-    .withMessage("Password must be of 5 characters minimum "),
+    .withMessage("Password must be of 5 characters at least."),
   body("name")
     .trim()
     .isLength({ min: 4, max: 30 })
-    .withMessage("Name must be between 4 to 30 characters"),
+    .withMessage("Name must be between 4 to 30 characters and must be full name."),
   body("gender")
     .trim()
     .isLength({ min: 3, max: 10 })
-    .withMessage("Gender is required"),
-  body("age").trim().isNumeric().withMessage("Age is required"),
+    .withMessage("Gender is required."),
+  body("age").trim().isNumeric().withMessage("Age is required."),
   body("address")
     .trim()
     .optional()
     .isLength({ min: 6, max: 60 })
-    .withMessage("Address must be between 6 to 60 characters"),
+    .withMessage("Address must be between 6 to 60 characters."),
 ];
 exports.UpdateUserValidation = [
   body("email")
@@ -44,7 +44,7 @@ exports.UpdateUserValidation = [
       return value.replace(/\s+/g, "");
     })
     .isEmail()
-    .withMessage("Please enter a valid email...")
+    .withMessage("Please enter a valid email.")
     .custom((value, { req }) => {
       return User.findOne({ email: value }).then((userDoc) => {
         if (userDoc) {
@@ -56,23 +56,23 @@ exports.UpdateUserValidation = [
     .trim()
     .optional()
     .isLength({ min: 4, max: 30 })
-    .withMessage("Name must be between 4 to 30 characters"),
+    .withMessage("Name must be between 4 to 30 characters."),
   body("gender")
     .trim()
     .optional()
     .isLength({ min: 3, max: 10 })
-    .withMessage("Gender is required"),
+    .withMessage("Gender is required."),
   body("password")
     .trim()
     .optional()
     .isLength({ min: 5 })
-    .withMessage("Password must be of 5 characters minimum "),
-  body("age").trim().optional().isNumeric().withMessage("Age is required"),
+    .withMessage("Password must be of 5 characters minimum."),
+  body("age").trim().optional().isNumeric().withMessage("Age is required."),
   body("address")
     .trim()
     .optional()
     .isLength({ min: 6, max: 60 })
-    .withMessage("Address must be between 6 to 60 characters"),
+    .withMessage("Address must be between 6 to 60 characters."),
 ];
 
 exports.CreatePostValidation = [
