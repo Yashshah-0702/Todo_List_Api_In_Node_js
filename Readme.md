@@ -23,4 +23,5 @@ Before you begin, ensure you have met the following requirements:
 Clone the repository:
 
 - git clone https://github.com/Yashshah-0702/Todo_List_Api_In_Node_js.git
+- cd Todo_List_Api_In_Node_js
 - npm install
