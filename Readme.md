@@ -26,6 +26,3 @@ Clone the repository:
 - cd Todo_List_Api_In_Node_js
 - npm install
 
-### Postman links
-- Todo folder - https://api.postman.com/collections/29514661-4e0e990a-0284-4d7e-becb-640356a27e14?access_key=PMAT-01H9GBF0561Y6CWDWXH0NSE40S
-- It contains both user and todo tasks folder.
