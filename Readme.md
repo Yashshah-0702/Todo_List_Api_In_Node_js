@@ -7,6 +7,7 @@ A A To-Do List App built using Node.js, Express.js, and MongoDB Compass, allowin
 - Create, read, update, and delete (CRUD) operations for tasks.
 - Secure and scalable using MongoDB for data storage.
 - Error handling and validation.
+- Email sending functionality when user sign up or new task is added.
 - Task input validation.
 - File storing in server using multer.
 
